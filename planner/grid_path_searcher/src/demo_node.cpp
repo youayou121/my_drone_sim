@@ -11,6 +11,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Point.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
 
@@ -42,6 +43,9 @@ int _max_x_id, _max_y_id, _max_z_id;
 
 
 ros::Subscriber _map_sub, _pts_sub;
+ros::Subscriber odom_sub;
+ros::Publisher pub_local_goal;
+vector<Vector3d> global_path;
 ros::Publisher  _grid_path_vis_pub, _visited_nodes_vis_pub, _grid_map_vis_pub;
 
 AstarPathFinder * _astar_path_finder     = new AstarPathFinder();
@@ -114,10 +118,10 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 {
     _astar_path_finder->AstarGraphSearch(start_pt, target_pt);
 
-    auto grid_path     = _astar_path_finder->getPath();
+    global_path   = _astar_path_finder->getPath();
     auto visited_nodes = _astar_path_finder->getVisitedNodes();
 
-    visGridPath (grid_path, false);
+    visGridPath (global_path, false);
 	
     visVisitedNode(visited_nodes);
 
@@ -144,6 +148,62 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 
 }
 
+double distance(geometry_msgs::Point pos1,geometry_msgs::Point pos2)
+{
+    return (pos1.x-pos2.x)*(pos1.x-pos2.x)+(pos1.y-pos2.y)*(pos1.y-pos2.y)+(pos1.z-pos2.z)*(pos1.z-pos2.z);
+}
+
+int find_next_index(geometry_msgs::Point pose)
+{
+    double min_dist = 100;
+    int min_dist_index = 0;
+    for(int i = 0;i<global_path.size();i++)
+    {
+        geometry_msgs::Point path_pos;
+        path_pos.x = global_path[i](0);
+        path_pos.y = global_path[i](1);
+        path_pos.z = global_path[i](2);
+        if(distance(path_pos,pose)<min_dist)
+        {
+            min_dist_index = i;
+            min_dist = distance(path_pos,pose);
+        }
+    }
+    if(min_dist_index+6<global_path.size()-1)
+    {
+        return min_dist_index+6;
+    }
+    else
+    {
+        return global_path.size()-1;
+    }
+}
+
+void odom_cb(const nav_msgs::OdometryConstPtr& odom)
+{
+    _start_pt(0) = odom->pose.pose.position.x;
+    _start_pt(1) = odom->pose.pose.position.y;
+    _start_pt(2) = odom->pose.pose.position.z;
+    // std::cout<<"odom_cb"<<endl;
+    if(global_path.size()>0)
+    {
+        geometry_msgs::PoseStamped current_goal;
+        current_goal.header.frame_id = "world";
+        current_goal.header.stamp = ros::Time::now();
+        current_goal.pose.orientation = odom->pose.pose.orientation;
+        int next_index = find_next_index(odom->pose.pose.position);
+        if(next_index==global_path.size()-1)
+        {
+            return;
+        }
+        current_goal.pose.position.x = global_path[next_index](0);
+        current_goal.pose.position.y = global_path[next_index](1);
+        current_goal.pose.position.z = 0.0;
+        pub_local_goal.publish(current_goal);
+    }
+
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "demo_node");
@@ -151,6 +211,8 @@ int main(int argc, char** argv)
 
     _map_sub  = nh.subscribe( "map",       1, rcvPointCloudCallBack );
     _pts_sub  = nh.subscribe( "waypoints", 1, rcvWaypointsCallback );
+    odom_sub = nh.subscribe("odom",1,odom_cb);
+    pub_local_goal = nh.advertise<geometry_msgs::PoseStamped>("current_goal",1);
 
     _grid_map_vis_pub             = nh.advertise<sensor_msgs::PointCloud2>("grid_map_vis", 1);
     _grid_path_vis_pub            = nh.advertise<visualization_msgs::Marker>("grid_path_vis", 1);
