@@ -1,0 +1,45 @@
+<launch>
+  <!-- size of map, change the size inflate x, y, z according to your application -->
+  <arg name="map_size_x" value="20.0" />
+  <arg name="map_size_y" value="20.0" />
+  <arg name="map_size_z" value=" 4.0" />
+  <arg name="start_x" default=" 0.0" />
+  <arg name="start_y" default=" 0.0" />
+  <arg name="start_z" default=" 0.0" />
+  <!-- topic of your odometry such as VIO or LIO -->
+  <arg name="odom_topic" value="/visual_slam/odom" />
+
+  <node pkg="grid_path_searcher" type="demo_node" name="demo_node" output="screen" required="true">
+    <remap from="~waypoints" to="/waypoint_generator/waypoints" />
+    <remap from="~map" to="/map_generator/global_cloud" />
+
+    <param name="map/margin" value="0.0" />
+    <param name="map/resolution" value="0.1" />
+    <param name="map/x_size" value="$(arg map_size_x)" />
+    <param name="map/y_size" value="$(arg map_size_y)" />
+    <param name="map/z_size" value="$(arg map_size_z)" />
+
+    <param name="planning/start_x" value="$(arg start_x)" />
+    <param name="planning/start_y" value="$(arg start_y)" />
+    <param name="planning/start_z" value="$(arg start_z)" />
+  </node>
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+    <remap from="~goal" to="/goal" />
+    <param name="waypoint_type" value="manual-lonely-waypoint" />
+  </node>
+  <!-- use simulator -->
+  <include file="$(find ego_planner)/launch/simulator.xml">
+    <arg name="map_size_x_" value="$(arg map_size_x)" />
+    <arg name="map_size_y_" value="$(arg map_size_y)" />
+    <arg name="map_size_z_" value="$(arg map_size_z)" />
+    <arg name="c_num" value="50" />
+    <arg name="p_num" value="50" />
+    <arg name="min_dist" value="1.2" />
+
+    <arg name="odometry_topic" value="$(arg odom_topic)" />
+  </include>
+
+  <node pkg="rviz" name="rviz" type="rviz"
+    args="-d $(find grid_path_searcher)/launch/rviz_config/run_in_sim.rviz" />
+
+</launch>

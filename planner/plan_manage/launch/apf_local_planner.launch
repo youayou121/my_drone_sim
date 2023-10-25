@@ -49,7 +49,7 @@
 		<param name="vfh/h_res" value="360" type="int"/>
 	</node>	
 <node pkg="local_sensing_node" type="cloud_tf" name="cloud_tf">
-	<remap from="/pcl_render_node/cloud" to="/map_generator/global_cloud"/>
+	<remap from="/pcl_render_node/cloud" to="/pcl_render_node/cloud"/>
 </node>
   <!-- use simulator -->
   <include file="$(find prometheus_local_planning)/launch/simulator.xml">
