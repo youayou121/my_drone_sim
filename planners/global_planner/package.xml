@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>grid_path_searcher</name>
+  <name>global_planner</name>
   <version>0.0.1</version>
   <description> Path searching methods on 3d grid map </description>
   <maintainer email="ustfeigao@gmail.com">fgaoaa</maintainer>

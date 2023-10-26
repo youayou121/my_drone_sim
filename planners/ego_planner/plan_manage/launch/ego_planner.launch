@@ -91,8 +91,13 @@
     <arg name="c_num" value="200"/>
     <arg name="p_num" value="200"/>
     <arg name="min_dist" value="1.2"/>
+    <arg name="init_x" value = "-10.0"/>
+    <arg name="init_y" value = "-10.0"/>
+    <arg name="init_z" value = "0.0"/>
 
     <arg name="odometry_topic" value="$(arg odom_topic)" />
   </include>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ego_planner)/launch/default.rviz" required="true" />
 
 </launch>

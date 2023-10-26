@@ -7,7 +7,7 @@
   <!-- topic of your odometry such as VIO or LIO -->
   <arg name="odom_topic" value="/visual_slam/odom" />
 
-	<node pkg="prometheus_local_planning" name="local_planner_main" type="local_planner_main" output="screen"  launch-prefix="gnome-terminal --">	
+	<node pkg="apf_local_planner" name="local_planner_main" type="local_planner_main" output="screen"  launch-prefix="gnome-terminal --">	
 	<remap from="/prometheus/planning/local_pcl" to="/local_cloud" />
     <remap from="/odom" to="$(arg odom_topic)"/>
 		<!-- 参数 -->
@@ -52,7 +52,7 @@
 	<remap from="/pcl_render_node/cloud" to="/map_generator/global_cloud"/>
 </node>
   <!-- use simulator -->
-  <include file="$(find prometheus_local_planning)/launch/simulator.xml">
+  <include file="$(find apf_local_planner)/launch/simulator.xml">
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
     <arg name="map_size_y_" value="$(arg map_size_y)"/>
     <arg name="map_size_z_" value="$(arg map_size_z)"/>
@@ -63,6 +63,6 @@
     <arg name="odometry_topic" value="$(arg odom_topic)" />
   </include>
 
-<node name="rviz" pkg="rviz" type="rviz" args="-d $(find prometheus_local_planning)/launch/default.rviz" required="true" />
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find apf_local_planner)/launch/default.rviz" required="true" />
 
 </launch>

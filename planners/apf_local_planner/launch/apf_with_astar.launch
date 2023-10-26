@@ -20,7 +20,7 @@
     <remap from="~goal" to="/goal" />
     <param name="waypoint_type" value="manual-lonely-waypoint" />
   </node>
-<node pkg="prometheus_local_planning" name="local_planner_main" type="local_planner_main" output="screen"  launch-prefix="gnome-terminal --">	
+<node pkg="apf_local_planner" name="local_planner_main" type="local_planner_main" output="screen"  launch-prefix="gnome-terminal --">	
 	<remap from="/prometheus/planning/local_pcl" to="/local_cloud" />
 	<remap from="/prometheus/planning/goal" to="/demo_node/current_goal"/>
     <remap from="/odom" to="$(arg odom_topic)"/>
@@ -81,6 +81,6 @@
     <arg name="odometry_topic" value="$(arg odom_topic)" />
   </include>
 
-<node name="rviz" pkg="rviz" type="rviz" args="-d $(find prometheus_local_planning)/launch/default.rviz" required="true" />
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find apf_local_planner)/launch/default.rviz" required="true" />
 
 </launch>

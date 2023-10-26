@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fast_planner)
+project(plan_manage)
 
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
 find_package(Eigen3 REQUIRED)
@@ -38,7 +38,7 @@ generate_messages(
 # catkin_package(CATKIN_DEPENDS message_runtime)
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES fast_planner
+ LIBRARIES plan_manage
  CATKIN_DEPENDS plan_env_fast path_searching_fast bspline bspline_opt_fast traj_utils_fast message_runtime
 #  DEPENDS system_lib
 )

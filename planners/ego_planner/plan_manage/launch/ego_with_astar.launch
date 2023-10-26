@@ -9,7 +9,7 @@
   <!-- topic of your odometry such as VIO or LIO -->
   <arg name="odom_topic" value="/visual_slam/odom" />
 
-  <node pkg="grid_path_searcher" type="demo_node" name="demo_node" output="screen" required="true">
+  <node pkg="global_planner" type="demo_node" name="demo_node" output="screen" required="true">
     <remap from="~waypoints" to="/waypoint_generator_global/waypoints" />
     <remap from="~map" to="/map_generator/global_cloud" />
     <remap from="~odom" to="$(arg odom_topic)"/>
@@ -116,7 +116,7 @@
     <arg name="odometry_topic" value="$(arg odom_topic)" />
   </include>
 
-  <node pkg="rviz" name="rviz" type="rviz"
-    args="-d $(find grid_path_searcher)/launch/rviz_config/run_in_sim.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ego_planner)/launch/default.rviz" required="true" />
+
 
 </launch>

@@ -65,8 +65,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 4.686286926269531
-        Min Value: 0.0003224872052669525
+        Max Value: 4.025981903076172
+        Min Value: 3.087018194491975e-05
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -103,7 +103,8 @@ Visualization Manager:
       Marker Topic: /demo_node/grid_path_vis
       Name: gridPath
       Namespaces:
-        {}
+        demo_node/astar_path: true
+        demo_node/jps_path: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -140,9 +141,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2547966241836548
+      Pitch: 1.184796690940857
       Target Frame: <Fixed Frame>
-      Yaw: 3.1793622970581055
+      Yaw: 2.794360637664795
     Saved:
       - Class: rviz/Orbit
         Distance: 79.24484252929688
