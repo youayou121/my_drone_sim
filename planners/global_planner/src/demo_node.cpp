@@ -134,10 +134,9 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 
         //获得最优路径和访问的节点
         auto visited_nodes = _jps_path_finder->getVisitedNodes();
-        auto grid_path = _jps_path_finder->getPath();
-
+        global_path = _jps_path_finder->getPath();
         //可视化
-        visGridPath(grid_path, _use_jps);
+        visGridPath(global_path, _use_jps);
         visVisitedNode(visited_nodes);
 
         //重置栅格地图,为下次调用做准备

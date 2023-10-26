@@ -18,7 +18,7 @@ void Occupy_map::init(ros::NodeHandle& nh)
     nh.param("map/map_size_y", map_size_3d_(1), 10.0);
     nh.param("map/map_size_z", map_size_3d_(2), 5.0);
     // 地图分辨率，单位：米
-    nh.param("map/resolution", resolution_,  0.2);
+    nh.param("map/resolution", resolution_,  1.0);
     // 地图膨胀距离，单位：米
     nh.param("map/inflate", inflate_,  0.3);
 

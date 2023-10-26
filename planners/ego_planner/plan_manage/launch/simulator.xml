@@ -36,7 +36,7 @@
     <param name="ObstacleShape/z_h" value="0.8"/>        
     <param name="ObstacleShape/theta" value="0.5"/>        
 
-    <param name="sensing/radius" value="5.0"/>        
+    <param name="sensing/radius" value="10.0"/>        
     <param name="sensing/rate"   value="10.0"/>  
     
     <param name="min_distance" value="$(arg min_dist)"/>         

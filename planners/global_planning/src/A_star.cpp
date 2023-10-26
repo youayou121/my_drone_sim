@@ -75,6 +75,7 @@ void Astar::reset()
 // 将传输的数组通通变为指针！！！！ 以后改
 int Astar::search(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt)
 {
+  
   // 首先检查目标点是否可到达
   if(Occupy_map_ptr->getOccupancy(end_pt))
   {
@@ -105,7 +106,7 @@ int Astar::search(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt)
   expanded_nodes_.insert(cur_node->index, cur_node);
 
   NodePtr terminate_node = NULL;
-
+  std::cout<<"debug"<<std::endl;
   // 搜索主循环
   while (!open_set_.empty())
   {
