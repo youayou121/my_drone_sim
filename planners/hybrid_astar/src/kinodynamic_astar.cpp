@@ -128,7 +128,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
   open_set_.push(cur_node);
   // 迭代次数+1
   use_node_num_ += 1;
-
+  
   if (dynamic)
   {
     time_origin_ = time_start;
@@ -145,13 +145,14 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
   PathNodePtr terminate_node = NULL;
   bool init_search = init;
   const int tolerance = ceil(1 / resolution_);
-
+  // std::cout<<open_set_.empty()<<std::endl;
   /* ---------- search loop ---------- */
   while (!open_set_.empty())
   {
+    
     // 获取f_score最低的点
     cur_node = open_set_.top();
-  
+    
     //　判断终止条件
     bool reach_end = abs(cur_node->index(0) - end_index(0)) <= tolerance &&
                     abs(cur_node->index(1) - end_index(1)) <= tolerance &&
@@ -223,12 +224,13 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
       for (double tau = time_res * max_tau_; tau <= max_tau_; tau += time_res * max_tau_)
         durations.push_back(tau);
     }
-
+    
     /* ---------- state propagation loop ---------- */
     // cout << "cur state:" << cur_state.head(3).transpose() << endl;
     for (int i = 0; i < inputs.size(); ++i)
       for (int j = 0; j < durations.size(); ++j)
       {
+        
         init_search = false;
         um = inputs[i];
         double tau = durations[j];
@@ -389,7 +391,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
         /* ----------  ---------- */
       }
   }
-
+  
   // 搜索完所有可行点，即使没达到最大搜索次数，也没有找到路径
   // 这种一般是因为无人机周围被占据，或者无人机与目标点之间无可通行路径造成的
   pub_message(message_pub, prometheus_msgs::Message::WARN, NODE_NAME, "max_search_num: open set empty.");

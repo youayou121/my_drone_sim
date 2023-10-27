@@ -7,7 +7,6 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <sensor_msgs/PointCloud2.h>
-
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -22,7 +21,7 @@
 using namespace std;
 using namespace Eigen;
 
-#define _use_jps  1    //0 -> 只使用Ａ*, 1 -> 使用JPS
+#define _use_jps  0    //0 -> 只使用Ａ*, 1 -> 使用JPS
 
 namespace backward {
 backward::SignalHandling sh;
@@ -45,6 +44,7 @@ int _max_x_id, _max_y_id, _max_z_id;
 ros::Subscriber _map_sub, _pts_sub;
 ros::Subscriber odom_sub;
 ros::Publisher pub_local_goal;
+ros::Publisher pub_path;
 vector<Vector3d> global_path;
 ros::Publisher  _grid_path_vis_pub, _visited_nodes_vis_pub, _grid_map_vis_pub;
 
@@ -72,7 +72,25 @@ void rcvWaypointsCallback(const nav_msgs::Path & wp)
                  wp.poses[0].pose.position.z;
 
     ROS_INFO("[node] receive the planning target");
-    pathFinding(_start_pt, target_pt);    
+    pathFinding(_start_pt, target_pt);  
+    nav_msgs::Path path;  
+    for(Vector3d pos:global_path)
+    {
+        geometry_msgs::PoseStamped ps;
+        ps.header.frame_id = "world";
+        ps.header.stamp = ros::Time::now();
+        ps.pose.position.x = pos(0);
+        ps.pose.position.y = pos(1);
+        ps.pose.position.z = pos(2);
+        ps.pose.orientation.x = 0;
+        ps.pose.orientation.y = 0;
+        ps.pose.orientation.z = 0;
+        ps.pose.orientation.w = 1;
+        path.poses.push_back(ps);
+    }
+    path.header.frame_id = "world";
+    path.header.stamp = ros::Time::now();
+    pub_path.publish(path);
 }
 
 void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
@@ -116,16 +134,7 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
 
 void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 {
-    _astar_path_finder->AstarGraphSearch(start_pt, target_pt);
 
-    global_path   = _astar_path_finder->getPath();
-    auto visited_nodes = _astar_path_finder->getVisitedNodes();
-
-    visGridPath (global_path, false);
-	
-    visVisitedNode(visited_nodes);
-
-    _astar_path_finder->resetUsedGrids();
 
     if(_use_jps)
     {
@@ -141,6 +150,19 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 
         //重置栅格地图,为下次调用做准备
         _jps_path_finder->resetUsedGrids();
+    }
+    else
+    {
+        _astar_path_finder->AstarGraphSearch(start_pt, target_pt);
+
+        global_path = _astar_path_finder->getPath();
+        auto visited_nodes = _astar_path_finder->getVisitedNodes();
+
+        visGridPath(global_path, false);
+
+        visVisitedNode(visited_nodes);
+
+        _astar_path_finder->resetUsedGrids();
     }
 
 
@@ -198,7 +220,7 @@ void odom_cb(const nav_msgs::OdometryConstPtr& odom)
         current_goal.pose.position.x = global_path[next_index](0);
         current_goal.pose.position.y = global_path[next_index](1);
         current_goal.pose.position.z = global_path[next_index](2);
-        pub_local_goal.publish(current_goal);
+        // pub_local_goal.publish(current_goal);
     }
 
 }
@@ -212,7 +234,7 @@ int main(int argc, char** argv)
     _pts_sub  = nh.subscribe( "waypoints", 1, rcvWaypointsCallback );
     odom_sub = nh.subscribe("odom",1,odom_cb);
     pub_local_goal = nh.advertise<geometry_msgs::PoseStamped>("current_goal",1);
-
+    pub_path = nh.advertise<nav_msgs::Path>("/global_path",1);
     _grid_map_vis_pub             = nh.advertise<sensor_msgs::PointCloud2>("grid_map_vis", 1);
     _grid_path_vis_pub            = nh.advertise<visualization_msgs::Marker>("grid_path_vis", 1);
     _visited_nodes_vis_pub        = nh.advertise<visualization_msgs::Marker>("visited_nodes_vis",1);

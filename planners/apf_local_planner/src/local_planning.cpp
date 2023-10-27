@@ -45,7 +45,7 @@ void Local_Planner::init(ros::NodeHandle& nh)
     rviz_vel_pub = nh.advertise<geometry_msgs::Point>("/prometheus/local_planner/desired_vel", 10); 
 
     // 定时函数,执行周期为1Hz
-    mainloop_timer = nh.createTimer(ros::Duration(0.2), &Local_Planner::mainloop_cb, this);
+    mainloop_timer = nh.createTimer(ros::Duration(0.1), &Local_Planner::mainloop_cb, this);
 
     // 控制定时器
     control_timer = nh.createTimer(ros::Duration(0.05), &Local_Planner::control_cb, this);
@@ -68,6 +68,7 @@ void Local_Planner::init(ros::NodeHandle& nh)
     odom_ready = false;
     drone_ready = false;
     goal_ready = false;
+    local_goal_ready = true;
     sensor_ready = false;
     path_ok = false;
 
@@ -134,7 +135,6 @@ void Local_Planner::goal_cb(const geometry_msgs::PoseStampedConstPtr& msg)
 
     // 获得新目标点
     pub_message(message_pub, prometheus_msgs::Message::NORMAL, NODE_NAME,"Get a new goal point");
-
     cout << "Get a new goal point:"<< goal_pos(0) << " [m] "  << goal_pos(1) << " [m] "  << goal_pos(2)<< " [m] "   <<endl;
 
     if(goal_pos(0) == 99 && goal_pos(1) == 99 )
@@ -198,16 +198,6 @@ void Local_Planner::odom_cb(const nav_msgs::OdometryConstPtr &odom)
     odom_ready = true;
     drone_ready = true;
     Drone_odom = *odom;
-    // Drone_odom.header = odom->header;
-    // Drone_odom.child_frame_id = odom->child_frame_id;
-    // Drone_odom.pose.pose.position.x = odom->pose.pose.position.x;
-    // Drone_odom.pose.pose.position.y = odom->pose.pose.position.y;
-    // Drone_odom.pose.pose.position.z = odom->pose.pose.position.z;
-
-    // Drone_odom.pose.pose.orientation = odom->pose.pose.orientation;
-    // Drone_odom.twist.twist.linear.x = odom->twist.twist.linear.x;
-    // Drone_odom.twist.twist.linear.y = odom->twist.twist.linear.y;
-    // Drone_odom.twist.twist.linear.z = odom->twist.twist.linear.z;
     position_cmd.position.x = odom->pose.pose.position.x;
     position_cmd.position.y = odom->pose.pose.position.y;
     position_cmd.position.z = odom->pose.pose.position.z;
@@ -367,7 +357,7 @@ void Local_Planner::mainloop_cb(const ros::TimerEvent& e)
         drone_ready = false;
         sensor_ready = false;
     }
-
+    std::cout<<exec_state<<std::endl;
     switch (exec_state)
     {
         case WAIT_GOAL:
@@ -402,8 +392,8 @@ void Local_Planner::mainloop_cb(const ros::TimerEvent& e)
             {
                 desired_vel = desired_vel / desired_vel.norm() * max_planning_vel; 
             }
-
-            if(exec_num==100)
+            cout<<desired_vel(0)<<" "<<desired_vel(1)<<" "<<desired_vel(2);
+            if(exec_num==1)
             {
                 char sp[100];
                 if(planner_state == 1)

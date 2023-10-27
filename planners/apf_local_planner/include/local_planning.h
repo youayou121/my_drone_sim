@@ -81,6 +81,7 @@ private:
     bool drone_ready;
     bool sensor_ready;
     bool goal_ready; 
+    bool local_goal_ready;
     bool is_safety;
     bool path_ok;
 

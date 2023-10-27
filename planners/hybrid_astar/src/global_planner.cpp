@@ -30,7 +30,7 @@ void Global_Planner::init(ros::NodeHandle& nh)
 
     // 订阅 无人机状态
     drone_state_sub = nh.subscribe<prometheus_msgs::DroneState>("/prometheus/drone_state", 10, &Global_Planner::drone_state_cb, this);
-
+    odom_sub = nh.subscribe<nav_msgs::Odometry>("/odom",1,&Global_Planner::odom_cb,this);
     // 根据map_input选择地图更新方式
     if(map_input == 0)
     {
@@ -50,7 +50,7 @@ void Global_Planner::init(ros::NodeHandle& nh)
     // 发布路径用于显示
     path_cmd_pub   = nh.advertise<nav_msgs::Path>("/prometheus/global_planning/path_cmd",  10); 
     // 定时器 安全检测
-    // safety_timer = nh.createTimer(ros::Duration(2.0), &Global_Planner::safety_cb, this); 
+    safety_timer = nh.createTimer(ros::Duration(2.0), &Global_Planner::safety_cb, this); 
     // 定时器 规划器算法执行周期
     mainloop_timer = nh.createTimer(ros::Duration(1.5), &Global_Planner::mainloop_cb, this);        
     // 路径追踪循环，快速移动场景应当适当提高执行频率
@@ -82,7 +82,7 @@ void Global_Planner::init(ros::NodeHandle& nh)
     if(sim_mode == true)
     {
         // Waiting for input
-        int start_flag = 0;
+        int start_flag = 1;
         while(start_flag == 0)
         {
             cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Global Planner<<<<<<<<<<<<<<<<<<<<<<<<<<< "<< endl;
@@ -139,7 +139,7 @@ void Global_Planner::goal_cb(const geometry_msgs::PoseStampedConstPtr& msg)
     {
         goal_pos << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
     }
-        
+    
     goal_vel.setZero();
 
     goal_ready = true;
@@ -148,7 +148,36 @@ void Global_Planner::goal_cb(const geometry_msgs::PoseStampedConstPtr& msg)
     pub_message(message_pub, prometheus_msgs::Message::NORMAL, NODE_NAME,"Get a new goal point");
 
     cout << "Get a new goal point:"<< goal_pos(0) << " [m] "  << goal_pos(1) << " [m] "  << goal_pos(2)<< " [m] "   <<endl;
+    // 重置规划器
+    Astar_ptr->reset();
+    // 使用规划器执行搜索，返回搜索结果
 
+    bool init = false;
+    bool dynamic = false;
+    double time_start = 0;
+    start_acc.setZero();
+    cout << "Start point:"<< start_pos(0) << " [m] "  << start_pos(1) << " [m] "  << start_pos(2)<< " [m] "   <<endl;
+    int astar_state = Astar_ptr->search(start_pos, start_vel, start_acc, goal_pos, goal_vel, init, dynamic, time_start);
+    std::cout<<astar_state<<std::endl;
+    if (astar_state == KinodynamicAstar::NO_PATH)
+    {
+        path_ok = false;
+        exec_state = EXEC_STATE::WAIT_GOAL;
+        pub_message(message_pub, prometheus_msgs::Message::WARN, NODE_NAME, "a star find no path, please reset the goal!");
+    }
+    else
+    {
+        path_ok = true;
+        is_new_path = true;
+        path_cmd = Astar_ptr->get_ros_path();
+        Num_total_wp = path_cmd.poses.size();
+        start_point_index = get_start_point_id();
+        cur_id = start_point_index;
+        tra_start_time = ros::Time::now();
+        exec_state = EXEC_STATE::TRACKING;
+        path_cmd_pub.publish(path_cmd);
+        pub_message(message_pub, prometheus_msgs::Message::NORMAL, NODE_NAME, "astart find path success!");
+    }
     if(goal_pos(0) == 99 && goal_pos(1) == 99 )
     {
         path_ok = false;
@@ -203,6 +232,15 @@ void Global_Planner::drone_state_cb(const prometheus_msgs::DroneStateConstPtr& m
     Drone_odom.twist.twist.linear.z = _DroneState.velocity[2];
 }
 
+void Global_Planner::odom_cb(const nav_msgs::OdometryConstPtr& odom)
+{
+    // std::cout<<"odom_cb"<<std::endl;
+    // drone_ready = true;
+    odom_ready = true;
+    Drone_odom = *odom;
+    start_pos<<odom->pose.pose.position.x,odom->pose.pose.position.y,odom->pose.pose.position.z;
+    start_vel<<odom->twist.twist.linear.x,odom->twist.twist.linear.z,odom->twist.twist.linear.z;
+}
 // 根据全局点云更新地图
 // 情况：已知全局点云的场景、由SLAM实时获取的全局点云
 void Global_Planner::Gpointcloud_cb(const sensor_msgs::PointCloud2ConstPtr &msg)
@@ -221,21 +259,23 @@ void Global_Planner::Gpointcloud_cb(const sensor_msgs::PointCloud2ConstPtr &msg)
         Astar_ptr->Occupy_map_ptr->map_update_gpcl(msg);
         // 并对地图进行膨胀
         Astar_ptr->Occupy_map_ptr->inflate_point_cloud(); 
-    }else
-    {
-        static int update_num=0;
-        update_num++;
-
-        // 此处改为根据循环时间计算的数值
-        if(update_num == 10)
-        {
-            // 对Astar中的地图进行更新
-            Astar_ptr->Occupy_map_ptr->map_update_gpcl(msg);
-            // 并对地图进行膨胀
-            Astar_ptr->Occupy_map_ptr->inflate_point_cloud(); 
-            update_num = 0;
-        } 
+        map_groundtruth = true;
     }
+    // else
+    // {
+    //     static int update_num=0;
+    //     update_num++;
+
+    //     // 此处改为根据循环时间计算的数值
+    //     if(update_num == 10)
+    //     {
+    //         // 对Astar中的地图进行更新
+    //         Astar_ptr->Occupy_map_ptr->map_update_gpcl(msg);
+    //         // 并对地图进行膨胀
+    //         Astar_ptr->Occupy_map_ptr->inflate_point_cloud(); 
+    //         update_num = 0;
+    //     } 
+    // }
     
 }
 
@@ -428,7 +468,7 @@ void Global_Planner::mainloop_cb(const ros::TimerEvent& e)
             bool init = false;
             bool dynamic = false;
             double time_start = 0;
-
+            
             int astar_state = Astar_ptr->search(start_pos, start_vel, start_acc, goal_pos, goal_vel, init, dynamic, time_start);
 
             if(astar_state==KinodynamicAstar::NO_PATH)

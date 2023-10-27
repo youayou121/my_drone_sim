@@ -39,6 +39,12 @@ target_link_libraries(demo_node
     ${catkin_LIBRARIES}
     ${PCL_LIBRARIES} 
 )
+add_executable (pub_local_goal
+    src/pub_local_goal.cpp )
+
+target_link_libraries( pub_local_goal
+    ${catkin_LIBRARIES}
+    ${PCL_LIBRARIES} )  
 
 add_executable ( random_complex 
     src/random_complex_generator.cpp )

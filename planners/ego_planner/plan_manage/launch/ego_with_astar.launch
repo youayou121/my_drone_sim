@@ -27,6 +27,10 @@
     <remap from="~goal" to="/goal" />
     <param name="waypoint_type" value="manual-lonely-waypoint" />
   </node>
+  <node pkg="global_planner" type="pub_local_goal" name="pub_local_goal" output="screen" required="true">
+    <remap from="/odom" to="$(arg odom_topic)"/>
+    <remap from="/global_cloud" to="/map_generator/global_cloud"/>
+  </node>
   <include file="$(find ego_planner)/launch/advanced_param.xml">
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
     <arg name="map_size_y_" value="$(arg map_size_y)"/>
@@ -96,7 +100,7 @@
 
   <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
     <remap from="~odom" to="$(arg odom_topic)"/>        
-    <remap from="~goal" to="/demo_node/current_goal"/>
+    <remap from="~goal" to="/current_goal"/>
     <remap from="~traj_start_trigger" to="/traj_start_trigger" />
     <param name="waypoint_type" value="manual-lonely-waypoint"/>    
   </node>
@@ -106,8 +110,8 @@
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
     <arg name="map_size_y_" value="$(arg map_size_y)"/>
     <arg name="map_size_z_" value="$(arg map_size_z)"/>
-    <arg name="c_num" value="200"/>
-    <arg name="p_num" value="200"/>
+    <arg name="c_num" value="50"/>
+    <arg name="p_num" value="50"/>
     <arg name="min_dist" value="1.2"/>
     <arg name="init_x" value = "-10.0"/>
     <arg name="init_y" value = "-10.0"/>
