@@ -107,7 +107,7 @@
     <param name="grid_map/pose_type"     value="2"/>  
     <param name="grid_map/frame_id"      value="world"/>
 
-  <!-- planner manager -->
+    <!-- planner manager -->
     <param name="manager/max_vel" value="$(arg max_vel)" type="double"/>
     <param name="manager/max_acc" value="$(arg max_acc)" type="double"/>
     <param name="manager/max_jerk" value="4" type="double"/>
@@ -115,7 +115,7 @@
     <param name="manager/feasibility_tolerance" value="0.05" type="double"/>
     <param name="manager/planning_horizon" value="$(arg planning_horizon)" type="double"/>
 
-  <!-- trajectory optimization -->
+    <!-- trajectory optimization -->
     <param name="optimization/lambda_smooth" value="1.0" type="double"/>
     <param name="optimization/lambda_collision" value="0.5" type="double"/>
     <param name="optimization/lambda_feasibility" value="0.1" type="double"/>

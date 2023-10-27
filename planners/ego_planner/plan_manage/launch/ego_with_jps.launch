@@ -2,7 +2,7 @@
   <!-- size of map, change the size inflate x, y, z according to your application -->
   <!-- topic of your odometry such as VIO or LIO -->
   <arg name="odom_topic" value="/visual_slam/odom" />
-
+  <param name="use_jps" type= "int" value = "1"/>
   <node pkg="global_planner" type="demo_node" name="demo_node" output="screen" required="true">
     <remap from="~waypoints" to="/waypoint_generator_global/waypoints" />
     <remap from="~map" to="/map_generator/global_cloud" />
@@ -11,8 +11,8 @@
     <param name="map/resolution" value="0.1" />
     <param name="map/x_size" value="40.0" />
     <param name="map/y_size" value="30.0" />
-    <param name="map/z_size" value="5.0" />
-
+    <param name="map/z_size" value="2.5" />
+  
   </node>
   <node pkg="waypoint_generator" name="waypoint_generator_global" type="waypoint_generator" output="screen">
     <remap from="~goal" to="/goal" />

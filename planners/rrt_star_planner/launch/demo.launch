@@ -1,0 +1,43 @@
+<launch>
+
+<arg name="map_size_x" default="20.0"/>
+<arg name="map_size_y" default="20.0"/>
+<arg name="map_size_z" default=" 2.0"/>
+
+<arg name="start_x" default=" 0.0"/>
+<arg name="start_y" default=" 0.0"/>
+<arg name="start_z" default=" 1.0"/>
+<arg name="odom_topic" value="/visual_slam/odom" />
+  <node pkg="rrt_star_planner" type="rrt_demo_node" name="rrt_demo_node" output="screen" required = "true">
+      <remap from="~waypoints"       to="/waypoint_generator/waypoints"/>
+      <remap from="~map"             to="/map_generator/global_cloud"/> 
+
+      <param name="map/margin"       value="0.0" />
+      <param name="map/resolution"   value="0.2" />
+      <param name="map/x_size"       value="$(arg map_size_x)"/>
+      <param name="map/y_size"       value="$(arg map_size_y)"/>
+      <param name="map/z_size"       value="$(arg map_size_z)"/>
+
+      <param name="planning/start_x" value="$(arg start_x)"/>
+      <param name="planning/start_y" value="$(arg start_y)"/>
+      <param name="planning/start_z" value="$(arg start_z)"/>
+  </node>
+   <include file="$(find ego_planner)/launch/simulator.xml">
+    <arg name="map_size_x_" value="$(arg map_size_x)"/>
+    <arg name="map_size_y_" value="$(arg map_size_y)"/>
+    <arg name="map_size_z_" value="$(arg map_size_z)"/>
+    <arg name="c_num" value="100"/>
+    <arg name="p_num" value="100"/>
+    <arg name="min_dist" value="1.2"/>
+    <arg name="init_x" value = "-10.0"/>
+    <arg name="init_y" value = "-10.0"/>
+    <arg name="init_z" value = "0.0"/>
+    <arg name="odometry_topic" value="$(arg odom_topic)" />
+    </include>
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+      <remap from="~goal" to="/goal"/>
+      <param name="waypoint_type" value="manual-lonely-waypoint"/>    
+  </node>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rrt_star_planner)/launch/rviz_config/demo.rviz" required="true" />
+
+</launch>

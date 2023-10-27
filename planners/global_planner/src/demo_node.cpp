@@ -21,7 +21,7 @@
 using namespace std;
 using namespace Eigen;
 
-#define _use_jps  0    //0 -> 只使用Ａ*, 1 -> 使用JPS
+int _use_jps = 0;    //0 -> 只使用Ａ*, 1 -> 使用JPS
 
 namespace backward {
 backward::SignalHandling sh;
@@ -135,20 +135,20 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
 void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 {
 
-
+    ros::param::get("use_jps",_use_jps);
     if(_use_jps)
     {
         // 调用JPS算法
         _jps_path_finder->JPSGraphSearch(start_pt, target_pt);
 
         //获得最优路径和访问的节点
-        auto visited_nodes = _jps_path_finder->getVisitedNodes();
         global_path = _jps_path_finder->getPath();
-        //可视化
+        auto visited_nodes = _jps_path_finder->getVisitedNodes();
+
         visGridPath(global_path, _use_jps);
+
         visVisitedNode(visited_nodes);
 
-        //重置栅格地图,为下次调用做准备
         _jps_path_finder->resetUsedGrids();
     }
     else
@@ -164,9 +164,6 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 
         _astar_path_finder->resetUsedGrids();
     }
-
-
-
 }
 
 double distance(geometry_msgs::Point pos1,geometry_msgs::Point pos2)

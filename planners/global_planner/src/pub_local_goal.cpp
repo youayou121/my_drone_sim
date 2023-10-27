@@ -14,6 +14,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_global(new pcl::PointCloud<pcl::PointXYZ
 ros::Publisher goal_pub;
 int pre_goal_index = -1;
 bool reach_goal = false;
+int look_ahead_distance = 7.0;
 bool is_point_cloud_in_range(const pcl::PointXYZ point, float range)
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
@@ -56,11 +57,14 @@ int find_next_index(geometry_msgs::Pose pose)
         point.x = global_path[current_goal_index].pose.position.x;
         point.y = global_path[current_goal_index].pose.position.y;
         point.z = global_path[current_goal_index].pose.position.z;
-        if (is_point_cloud_in_range(point,1.0))
+        if (is_point_cloud_in_range(point,0.1))
         {
-            current_goal_index++;
+            if(current_goal_index<global_path.size()-1)
+            {
+                current_goal_index++;
+            }
         }
-        if(distance(global_path[current_goal_index].pose,current_pose)>2.0)
+        if(distance(global_path[current_goal_index].pose,current_pose)>look_ahead_distance||current_goal_index==global_path.size()-1)
         {
             break;
         }
