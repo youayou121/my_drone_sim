@@ -52,7 +52,8 @@ int _max_x_id, _max_y_id, _max_z_id;
 // ros related
 ros::Subscriber _map_sub, _pts_sub;
 ros::Publisher  _grid_map_vis_pub, _RRTstar_path_vis_pub;
-
+ros::Publisher global_path_pub;
+ros::Subscriber odom_sub;
 RRTstarPreparatory * _RRTstar_preparatory     = new RRTstarPreparatory();
 
 void rcvWaypointsCallback(const nav_msgs::Path & wp);
@@ -70,7 +71,7 @@ void rcvWaypointsCallback(const nav_msgs::Path & wp)
                  wp.poses[0].pose.position.y,
                  wp.poses[0].pose.position.z;
 
-    ROS_INFO("[node] receive the planning target");
+    ROS_WARN("[node] receive the planning target");
     pathFinding(_start_pt, target_pt); 
 }
 
@@ -258,7 +259,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
         og::PathGeometric* path = pdef->getSolutionPath()->as<og::PathGeometric>();
         
         vector<Vector3d> path_points;
-
+        nav_msgs::Path path_msg;
         for (size_t path_idx = 0; path_idx < path->getStateCount (); path_idx++)
         {
             const ob::RealVectorStateSpace::StateType *state = path->getState(path_idx)->as<ob::RealVectorStateSpace::StateType>(); 
@@ -272,11 +273,28 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
             auto x = (*state)[0];
             auto y = (*state)[1];
             auto z = (*state)[2];
+           
             Vector3d temp_mat(x,y,z);
+      
             path_points.push_back(temp_mat);
+            geometry_msgs::PoseStamped pose;
+            pose.pose.position.x = x;
+            pose.pose.position.y = y;
+            pose.pose.position.z = z;
+            path_msg.poses.push_back(pose);
         }
+        path_msg.header.frame_id="world";
+        path_msg.header.stamp = ros::Time::now();
+        global_path_pub.publish(path_msg);
         visRRTstarPath(path_points);       
     }
+}
+
+void odom_cb(const nav_msgs::OdometryConstPtr odom)
+{
+    _start_pt(0)=odom->pose.pose.position.x;
+    _start_pt(1)=odom->pose.pose.position.y;
+    _start_pt(2)=odom->pose.pose.position.z;
 }
 
 int main(int argc, char** argv)
@@ -286,10 +304,10 @@ int main(int argc, char** argv)
 
     _map_sub  = nh.subscribe( "map",       1, rcvPointCloudCallBack );
     _pts_sub  = nh.subscribe( "waypoints", 1, rcvWaypointsCallback );
-
+    odom_sub = nh.subscribe("/odom",1,odom_cb);
     _grid_map_vis_pub             = nh.advertise<sensor_msgs::PointCloud2>("grid_map_vis", 1);
     _RRTstar_path_vis_pub         = nh.advertise<visualization_msgs::Marker>("RRTstar_path_vis",1);
-
+    global_path_pub = nh.advertise<nav_msgs::Path>("/global_path",1);
 
     nh.param("map/cloud_margin",  _cloud_margin, 0.0);
     nh.param("map/resolution",    _resolution,   0.2);
@@ -302,7 +320,7 @@ int main(int argc, char** argv)
     nh.param("planning/start_y",  _start_pt(1),  0.0);
     nh.param("planning/start_z",  _start_pt(2),  0.0);
 
-    _map_lower << - _x_size/2.0, - _y_size/2.0,     0.0;
+    _map_lower << - _x_size/2.0, - _y_size/2.0, -_z_size;
     _map_upper << + _x_size/2.0, + _y_size/2.0, _z_size;
     
     _inv_resolution = 1.0 / _resolution;

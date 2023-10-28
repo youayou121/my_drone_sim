@@ -1,10 +1,10 @@
 <launch>
   <!-- global parameters -->
   <arg name="map_size_x" value="40.0"/>
-  <arg name="map_size_y" value="20.0"/>
+  <arg name="map_size_y" value="30.0"/>
   <arg name="map_size_z" value=" 5.0"/>
 
-  <arg name="odom_topic" value="/state_ukf/odom" />
+  <arg name="odom_topic" value="/visual_slam/odom" />
 
   <!-- main algorithm params -->
   <include file="$(find plan_manage)/launch/topo_algorithm.xml">
@@ -37,7 +37,7 @@
     <!-- 1: use 2D Nav Goal to select goal  -->
     <!-- 2: use global waypoints below  -->
     <!-- 3: use global waypoints below to set reference path --> 
-    <arg name="flight_type" value="2" />
+    <arg name="flight_type" value="1" />
 
     <!-- global waypoints -->
     <arg name="point_num" value="3" />
@@ -57,7 +57,7 @@
   </include>
 
   <!-- trajectory server -->
-  <node pkg="plan_manage" name="traj_server" type="traj_server" output="screen">
+  <node pkg="plan_manage" name="traj_server" type="traj_server_fast" output="screen">
     <remap from="/position_cmd" to="planning/pos_cmd"/>
 
     <remap from="/odom_world" to="$(arg odom_topic)"/>
@@ -66,20 +66,25 @@
 
   <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
     <remap from="~odom" to="$(arg odom_topic)"/>        
-    <remap from="~goal" to="/move_base_simple/goal"/>
+    <remap from="~goal" to="/goal"/>
     <remap from="~traj_start_trigger" to="/traj_start_trigger" />
     <param name="waypoint_type" value="manual-lonely-waypoint"/>    
   </node>
 
   <!-- use simulator -->
-  <include file="$(find plan_manage)/launch/simulator.xml">
+  <include file="$(find ego_planner)/launch/simulator.xml">
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
     <arg name="map_size_y_" value="$(arg map_size_y)"/>
     <arg name="map_size_z_" value="$(arg map_size_z)"/>
-    <arg name="c_num" value="100"/>
-    <arg name="p_num" value="100"/>
-
+    <arg name="c_num" value="200"/>
+    <arg name="p_num" value="200"/>
+    <arg name="min_dist" value="1.2"/>
+    <arg name="init_x" value = "-10.0"/>
+    <arg name="init_y" value = "-10.0"/>
+    <arg name="init_z" value = "1.0"/>
     <arg name="odometry_topic" value="$(arg odom_topic)" />
   </include>
+  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find plan_manage)/launch/plan_manage/default.rviz" required="true" /> -->
+    <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find plan_manage)/config/kino.rviz" />
 
 </launch>

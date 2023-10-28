@@ -14,12 +14,16 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_global(new pcl::PointCloud<pcl::PointXYZ
 ros::Publisher goal_pub;
 int pre_goal_index = -1;
 bool reach_goal = false;
-int look_ahead_distance = 7.0;
-bool is_point_cloud_in_range(const pcl::PointXYZ point, float range)
+int look_ahead_distance = 10.0;
+double inflate_radius = 0.5;
+bool is_point_cloud_in_range(geometry_msgs::Pose pose, float range)
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
     kdtree.setInputCloud(pcl_global);
-
+    pcl::PointXYZ point;
+    point.x = pose.position.x;
+    point.y = pose.position.y;
+    point.z = pose.position.z;
     std::vector<int> pointIndices;
     std::vector<float> pointDistances;
 
@@ -53,22 +57,27 @@ int find_next_index(geometry_msgs::Pose pose)
     int current_goal_index = min_dist_index;
     while(current_goal_index<global_path.size())
     {
-        pcl::PointXYZ point;
-        point.x = global_path[current_goal_index].pose.position.x;
-        point.y = global_path[current_goal_index].pose.position.y;
-        point.z = global_path[current_goal_index].pose.position.z;
-        if (is_point_cloud_in_range(point,0.1))
+        // if (is_point_cloud_in_range(global_path[current_goal_index].pose,0.3))
+        // {
+        //     if(current_goal_index<global_path.size()-1)
+        //     {
+        //         current_goal_index++;
+        //     }
+        // }
+        if(distance(global_path[current_goal_index].pose,current_pose)<look_ahead_distance&&current_goal_index<global_path.size()-1)
         {
-            if(current_goal_index<global_path.size()-1)
+            current_goal_index++;
+        }else
+        {
+            if(!is_point_cloud_in_range(global_path[current_goal_index].pose,inflate_radius))
+            {
+                break;
+            }
+            else if(current_goal_index<global_path.size()-1)
             {
                 current_goal_index++;
             }
         }
-        if(distance(global_path[current_goal_index].pose,current_pose)>look_ahead_distance||current_goal_index==global_path.size()-1)
-        {
-            break;
-        }
-        current_goal_index++;
     }
     return current_goal_index;
 }
@@ -76,6 +85,7 @@ int find_next_index(geometry_msgs::Pose pose)
 void path_cb(const nav_msgs::PathConstPtr path)
 {
     reach_goal = false;
+    pre_goal_index = -1;
     cout<<"path_cb"<<endl;
     global_path.resize(0);
     global_path = path->poses;
@@ -84,18 +94,20 @@ void path_cb(const nav_msgs::PathConstPtr path)
 void odom_cb(const nav_msgs::OdometryConstPtr odom)
 {
     current_pose = odom->pose.pose;
+    // cout<<current_pose.position.x<<endl;
     if(!global_path.empty()&&!reach_goal)
     {
-        if(distance(current_pose,global_path.back().pose)<0.5)
+        if(distance(current_pose,global_path.back().pose)<0.3)
         {
             reach_goal = true;
+            pre_goal_index = -1;
         }
         else 
         {
-            cout << global_path.size() << endl;
+            // cout << global_path.size() << endl;
             geometry_msgs::PoseStamped current_goal;
             int goal_index = find_next_index(current_pose);
-            if (pre_goal_index != goal_index)
+            if (pre_goal_index < goal_index)
             {
                 current_goal = global_path[goal_index];
                 goal_pub.publish(current_goal);
@@ -117,6 +129,8 @@ int main(int argc, char** argv)
 {
     ros::init(argc,argv,"pub_local_goal_node");
     ros::NodeHandle nh;
+    ros::param::get("look_ahead_distance",look_ahead_distance);
+    ros::param::get("inflate_radius",inflate_radius);
     ros::Subscriber path_sub = nh.subscribe("/global_path",1,path_cb);
     ros::Subscriber odom_sub = nh.subscribe("/odom",1,odom_cb);
     ros::Subscriber cloud_sub = nh.subscribe("/global_cloud",1,cloud_cb);

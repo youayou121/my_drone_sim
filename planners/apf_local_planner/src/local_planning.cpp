@@ -357,7 +357,7 @@ void Local_Planner::mainloop_cb(const ros::TimerEvent& e)
         drone_ready = false;
         sensor_ready = false;
     }
-    std::cout<<exec_state<<std::endl;
+    // std::cout<<exec_state<<std::endl;
     switch (exec_state)
     {
         case WAIT_GOAL:

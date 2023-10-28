@@ -1,0 +1,35 @@
+<launch>
+  <!-- size of map, change the size inflate x, y, z according to your application -->
+  <arg name="map_size_x" value="40.0"/>
+  <arg name="map_size_y" value="30.0"/>
+  <arg name="map_size_z" value="5.0"/>
+  <!-- topic of your odometry such as VIO or LIO -->
+  <arg name="odom_topic" value="/visual_slam/odom" />
+
+  <node pkg="rrt_star_planner" type="rrt_demo_node" name="rrt_demo_node" output="screen" required = "true">
+      <remap from="~waypoints"       to="/waypoint_generator_global/waypoints"/>
+      <remap from="~map"             to="/map_generator/global_cloud"/> 
+      <remap from="/odom"            to="$(arg odom_topic)"/>
+      <remap from="/global_path"     to="/global_path"/>
+      <param name="map/margin"       value="0.0" />
+      <param name="map/resolution"   value="0.2" />
+      <param name="map/x_size"       value="$(arg map_size_x)"/>
+      <param name="map/y_size"       value="$(arg map_size_y)"/>
+      <param name="map/z_size"       value="$(arg map_size_z)"/>
+
+  </node>
+  <node pkg="waypoint_generator" name="waypoint_generator_global" type="waypoint_generator" output="screen">
+      <remap from="~goal" to="/goal"/>
+      <param name="waypoint_type" value="manual-lonely-waypoint"/>    
+  </node>
+  <node pkg="global_planner" type="pub_local_goal" name="pub_local_goal" output="screen" required="true">
+    <remap from="/odom" to="$(arg odom_topic)"/>
+    <remap from="/global_cloud" to="/map_generator/global_cloud"/>
+  </node>
+  <!-- trajectory server -->
+  <include file="$(find ego_planner)/launch/ego_sim.launch"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ego_planner)/rviz/ego_with_rrt_star.rviz" required="true" />
+
+
+</launch>

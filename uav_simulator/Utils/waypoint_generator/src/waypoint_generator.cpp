@@ -148,7 +148,7 @@ void goal_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
         ROS_ERROR("[waypoint_generator] No odom!");
         return;
     }*/
-
+    // ROS_WARN("goal cb");
     trigged_time = ros::Time::now(); //odom.header.stamp;
     //ROS_ASSERT(trigged_time > ros::Time(0));
 

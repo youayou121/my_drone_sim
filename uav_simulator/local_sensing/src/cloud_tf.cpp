@@ -36,6 +36,7 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr cloud2)
     crop.filter(*pcl_local);
     sensor_msgs::PointCloud2 output;
     pcl::toROSMsg(*pcl_local, output);
+    output.header.frame_id = "base";
     pub_cloud.publish(output);
 }
 int main(int argc, char **argv)

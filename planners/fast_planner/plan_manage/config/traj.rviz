@@ -4,9 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Axes1
-        - /Planning1/position_cmd1
-        - /Mapping1/simulation_map1
+        - /Planning1/topo_path1
         - /Mapping1/simulation_map1/Autocompute Value Bounds1
       Splitter Ratio: 0.5
     Tree Height: 737
@@ -14,9 +12,6 @@ Panels:
     Name: Selection
   - Class: rviz/Tool Properties
     Expanded:
-      - /2D Pose Estimate1
-      - /2D Nav Goal1
-      - /Publish Point1
       - /3D Nav Goal1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
@@ -170,21 +165,21 @@ Visualization Manager:
           Queue Size: 100
           Value: true
         - Class: rviz/Marker
-          Enabled: false
+          Enabled: true
           Marker Topic: /planning_vis/topo_path
           Name: topo_path
           Namespaces:
             {}
           Queue Size: 100
-          Value: false
+          Value: true
         - Class: rviz/Marker
-          Enabled: false
+          Enabled: true
           Marker Topic: /planning/travel_traj
           Name: executed_traj
           Namespaces:
-            {}
+            "": true
           Queue Size: 100
-          Value: false
+          Value: true
         - Class: rviz/Marker
           Enabled: true
           Marker Topic: /odom_visualization/velocity
@@ -353,19 +348,6 @@ Visualization Manager:
   Tools:
     - Class: rviz/Interact
       Hide Inactive Objects: true
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
-      Theta std deviation: 0.2617993950843811
-      Topic: /initialpose
-      X std deviation: 0.5
-      Y std deviation: 0.5
-    - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
-      Single click: true
-      Topic: /clicked_point
     - Class: rviz_plugins/Goal3DTool
       Topic: /move_base_simple/goal
   Value: true
@@ -379,18 +361,18 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 5.799712181091309
-        Y: -2.052570343017578
+        X: 2.371976137161255
+        Y: -10.058704376220703
         Z: 2.1449890482472256e-5
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.3497964143753052
+      Pitch: 1.2647955417633057
       Target Frame: <Fixed Frame>
       Value: ThirdPersonFollower (rviz)
-      Yaw: 4.800471305847168
+      Yaw: 4.685469627380371
     Saved:
       - Class: rviz/ThirdPersonFollower
         Distance: 17.48538589477539
