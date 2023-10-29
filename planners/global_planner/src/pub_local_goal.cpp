@@ -110,6 +110,7 @@ void odom_cb(const nav_msgs::OdometryConstPtr odom)
             if (pre_goal_index < goal_index)
             {
                 current_goal = global_path[goal_index];
+                current_goal.pose.orientation = current_pose.orientation;
                 goal_pub.publish(current_goal);
                 pre_goal_index = goal_index;
             }
