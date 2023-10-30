@@ -1,6 +1,11 @@
 # 相关说明
 
-仿真功能包第一次在编译的时候由于msgs的关系会失败，多编译几次即可。
+该包涉及到很多依赖库，如ompl等，编译时出现缺失按需安装即可。在第一次在编译的时候由于msgs的关系会失败，多编译几次即可。如果多次编译也出现找不到prometheus_msgs的问题，可以尝试执行下列命令：
+
+```
+catkin_make --only-pkg-with-deps prometheus_msgs
+catkin_make -DCATKIN_WHITELIST_PACKAGES=""
+```
 
 ## 仿真环境搭建
 
